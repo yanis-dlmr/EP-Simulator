@@ -1,0 +1,8 @@
+fastapi
+markdown2
+numpy
+os
+json
+subprocess
+uvicorn
+asyncio
