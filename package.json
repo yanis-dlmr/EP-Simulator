@@ -1,0 +1,84 @@
+{
+  "name": "ep-simulator",
+  "productName": "ep-simulator",
+  "version": "1.0.0",
+  "description": "EP Simulator, logiciel concu par un EP pour les EP",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "publish": "electron-forge publish",
+    "lint": "echo \"No linting configured\"",
+    "dist": "electron-builder"
+  },
+  "keywords": [],
+  "author": {
+    "name": "yanis-dlmr",
+    "email": "yanisdeladraw@gmail.com"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "eel": "^0.1.1",
+    "electron-is-dev": "^2.0.0",
+    "electron-reload": "^2.0.0-alpha.1",
+    "electron-squirrel-startup": "^1.0.0",
+    "fastapi": "^0.0.8",
+    "multiprocessing": "^1.2.0",
+    "python-shell": "^5.0.0",
+    "request": "^2.88.2",
+    "request-promise": "^4.2.6"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^6.0.5",
+    "@electron-forge/maker-deb": "^6.0.5",
+    "@electron-forge/maker-rpm": "^6.0.5",
+    "@electron-forge/maker-squirrel": "^6.0.5",
+    "@electron-forge/maker-zip": "^6.0.5",
+    "electron": "23.1.3",
+    "electron-builder": "^23.6.0"
+  },
+  "build": {
+    "appId": "com.ep_simulator.com",
+    "productName": "EP Simulator",
+    "target": "NSIS",
+    "nsis": {
+      "allowToChangeInstallationDirectory": true,
+      "oneClick": false
+    },
+    "win": {
+      "icon": "src/logo.ico"
+    },
+    "extraResources": [
+      {
+        "from": "Projet_scientifique",
+        "to": "Projet_scientifique",
+        "filter": [
+          "**/*",
+          "!**/resultats/**/*"
+        ]
+      },
+      {
+        "from": "server.py",
+        "to": "server.py",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "interface",
+        "to": "interface",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "pictures",
+        "to": "pictures",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ]
+  }
+}

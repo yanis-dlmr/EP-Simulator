@@ -1,0 +1,10 @@
+CFL 0.5
+vitesse_convection 1
+delta 0.05
+x0 0.2
+tf 0.5
+L 1
+U_0 0
+U_L 0
+nb_points_spatiaux 201
+pas_t_save 2

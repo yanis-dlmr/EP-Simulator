@@ -1,0 +1,8 @@
+nb_iterations 10000
+L_x 1
+L_y 1
+p_0_x 0
+p_0_y 0
+nb_points_spatiaux_x 110
+nb_points_spatiaux_y 110
+pas_t_save 100

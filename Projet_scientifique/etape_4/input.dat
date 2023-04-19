@@ -1,0 +1,17 @@
+CFL 0.2
+Fo 0.1
+coeff_diffusion 0.01
+nb_iterations 200
+L_x 2
+L_y 2
+U_0_x 1
+U_L_x 1
+U_0_y 1
+U_L_y 1
+V_0_x 1
+V_L_x 1
+V_0_y 1
+V_L_y 1
+nb_points_spatiaux_x 81
+nb_points_spatiaux_y 81
+pas_t_save 10

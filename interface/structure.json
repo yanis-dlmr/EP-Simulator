@@ -1,0 +1,131 @@
+{
+    "pages": [
+    {
+        "name": "Accueil",
+        "link": "accueil.html"
+    },
+    {
+        "name": "Etape 1",
+        "subPages": [
+        {
+            "name": "Détails",
+            "link": "details_etape_1.html"
+        },
+        {
+            "name": "Code Fortran",
+            "link": "code_etape_1.html"
+        },
+        {
+            "name": "Exploitation",
+            "link": "exploitation_etape_1.html"
+        }
+        ]
+    },
+    {
+        "name": "Etape 2",
+        "subPages": [
+        {
+            "name": "Détails",
+            "link": "details_etape_2.html"
+        },
+        {
+            "name": "Code Fortran",
+            "link": "code_etape_2.html"
+        },
+        {
+            "name": "Exploitation",
+            "link": "exploitation_etape_2.html"
+        }
+        ]
+    },
+    {
+        "name": "Etape 3",
+        "subPages": [
+        {
+            "name": "Détails",
+            "link": "details_etape_3.html"
+        },
+        {
+            "name": "Code Fortran",
+            "link": "code_etape_3.html"
+        },
+        {
+            "name": "Exploitation",
+            "link": "exploitation_etape_3.html"
+        }
+        ]
+    },
+    {
+        "name": "Etape 4",
+        "subPages": [
+        {
+            "name": "Détails",
+            "link": "details_etape_4.html"
+        },
+        {
+            "name": "Code Fortran",
+            "link": "code_etape_4.html"
+        },
+        {
+            "name": "Exploitation",
+            "link": "exploitation_etape_4.html"
+        }
+        ]
+    },
+    {
+        "name": "Etape 5",
+        "subPages": [
+        {
+            "name": "Détails",
+            "link": "details_etape_5.html"
+        },
+        {
+            "name": "Code Fortran",
+            "link": "code_etape_5.html"
+        },
+        {
+            "name": "Exploitation",
+            "link": "exploitation_etape_5.html"
+        }
+        ]
+    },
+    {
+        "name": "Etape 6",
+        "subPages": [
+        {
+            "name": "Détails",
+            "link": "details_etape_6.html"
+        },
+        {
+            "name": "Code Fortran",
+            "link": "code_etape_6.html"
+        },
+        {
+            "name": "Exploitation",
+            "link": "exploitation_etape_6.html"
+        }
+        ]
+    },
+    {
+        "name": "Etape 7",
+        "subPages": [
+        {
+            "name": "Détails",
+            "link": "WIP.html"
+        },
+        {
+            "name": "Code Fortran",
+            "link": "WIP.html"
+        },
+        {
+            "name": "Exploitation",
+            "link": "WIP.html"
+        }
+        ]
+    },
+    {
+        "name": "Dev",
+        "link": "dev.html"
+    }
+    ]
+}
