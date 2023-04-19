@@ -6,7 +6,7 @@
 > This project is not finished, some content might be wrong and missing.
 
 The main objective of this project is to set up an interface to manage simulations in Modern Fortran (f90). This allows us to modify the inputs, to run the simulations and to display the results in a dynamic way with Plotly.
-These simulations were made within the framework of a Scientific Project to apply the Navier-Stockes equations.
+These simulations were made for a Scientific Project to apply the Navier-Stockes equations.
 
 This software uses the ElectronJs framework. The backend is realized with a local python server launched automatically.
 
