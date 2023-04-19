@@ -11,12 +11,16 @@ Before you have to change in sec/index.js the following lines :
 
 ``` js
 mainWindow.loadFile(path.join(__dirname, '../interface/accueil.html'));
+```
 into
+``` js
 mainWindow.loadFile(path.join(__dirname, '../../interface/accueil.html'));
-
+```
 and
-
+``` js
 const pythonScriptPath = path.join(__dirname, '../server.py');
+```
 into
+``` js
 const pythonScriptPath = path.join(__dirname, '../../server.py');
 ```
