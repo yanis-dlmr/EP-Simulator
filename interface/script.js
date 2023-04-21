@@ -102,37 +102,19 @@ async function plot_plotly(x,y){
     }, {showSendToCloud: true});
 };
 
-async function plot_plotly_2D_4() {
-    start_loading();
-    const route = 'http://127.0.0.1:8000/data_2D_heatmap_4';
-    let resp = await fetch(route);
-    let data = await resp.json();
-    plot_plotly_2D_heatmap(data.datas);
-    end_loading();
-};
+async function plot_plotly_2D(data_send) {
+    var graphContainer = document.getElementById('graph_slide');
+    Plotly.purge(graphContainer);
 
-async function plot_plotly_2D_5() {
+    var url = "http://127.0.0.1:8000/data_2D_heatmap"
     start_loading();
-    const route = 'http://127.0.0.1:8000/data_2D_heatmap_5';
-    let resp = await fetch(route);
-    let data = await resp.json();
-    plot_plotly_2D_heatmap(data.datas);
-    end_loading();
-};
-
-async function plot_plotly_2D_6() {
-    start_loading();
-    const route = 'http://127.0.0.1:8000/data_2D_heatmap_6';
-    let resp = await fetch(route);
-    let data = await resp.json();
-    plot_plotly_2D_heatmap(data.datas);
-    end_loading();
-};
-
-async function plot_plotly_2D() {
-    start_loading();
-    const route = 'http://127.0.0.1:8000/data_2D_heatmap';
-    let resp = await fetch(route);
+    const resp = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data_send)
+    });
     let data = await resp.json();
     plot_plotly_2D_heatmap(data.datas);
     end_loading();

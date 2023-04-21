@@ -111,15 +111,15 @@
         "subPages": [
         {
             "name": "Détails",
-            "link": "WIP.html"
+            "link": "details_etape_7.html"
         },
         {
             "name": "Code Fortran",
-            "link": "WIP.html"
+            "link": "code_etape_7.html"
         },
         {
             "name": "Exploitation",
-            "link": "WIP.html"
+            "link": "exploitation_etape_7.html"
         }
         ]
     },

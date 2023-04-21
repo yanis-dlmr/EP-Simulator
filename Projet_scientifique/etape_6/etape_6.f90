@@ -128,8 +128,6 @@ contains
 
             if (critere_arret < 10.0_DB**(-6.0_DB)) then
                 call save_tecplot_format(p_n)
-                print *, critere_arret
-                print *, t
                 exit
             end if
 

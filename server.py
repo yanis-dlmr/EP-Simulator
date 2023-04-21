@@ -118,102 +118,41 @@ async def root():
         'y' : tableaux[1:]
     }
 
-@app.get("/data_2D_heatmap")
-async def root():
-    foldername = "./Projet_scientifique/etape_3/resultats/"
-    filenames = [filename for filename in os.listdir(foldername) if filename.endswith(".dat")]
+@app.post("/data_2D_heatmap")
+async def receive_post_request(data_input: dict):
+    folderPath = data_input.get('path')
+    filenames = [filename for filename in os.listdir(folderPath) if filename.endswith(".dat")]
 
     datas = []
 
     for idx, filename in enumerate(filenames):
-        with open(os.path.join(foldername, filename), "r") as f:
+        with open(os.path.join(folderPath, filename), "r") as f:
             f.readline()
             f.readline()
             f.readline()
             lines = f.readlines()
 
         data = np.zeros((len(lines), 3))
+        
+        try:
+            champs = data_input.get('champs')
+        except:
+            champs = 2
+        champsToCol = {
+            'u': 2,
+            'v': 3,
+            'p': 4
+        }
+        col = champsToCol.get(champs)
         for i, line in enumerate(lines):
             values = line.strip().split()
-            data[i, :] = [float(values[0]), float(values[1]), float(values[2])]
+            data[i, :] = [float(values[0]), float(values[1]), float(values[col])]
 
         datas.append(data.tolist())
     return {
         'datas': datas
     }
 
-
-@app.get("/data_2D_heatmap_4")
-async def root():
-    foldername = "./Projet_scientifique/etape_4/resultats/"
-    filenames = [filename for filename in os.listdir(foldername) if filename.endswith(".dat")]
-
-    datas = []
-
-    for idx, filename in enumerate(filenames):
-        with open(os.path.join(foldername, filename), "r") as f:
-            f.readline()
-            f.readline()
-            f.readline()
-            lines = f.readlines()
-
-        data = np.zeros((len(lines), 3))
-        for i, line in enumerate(lines):
-            values = line.strip().split()
-            data[i, :] = [float(values[0]), float(values[1]), float(values[2])]
-
-        datas.append(data.tolist())
-    return {
-        'datas': datas
-    }
-
-@app.get("/data_2D_heatmap_5")
-async def root():
-    foldername = "./Projet_scientifique/etape_5/resultats/"
-    filenames = [filename for filename in os.listdir(foldername) if filename.endswith(".dat")]
-
-    datas = []
-
-    for idx, filename in enumerate(filenames):
-        with open(os.path.join(foldername, filename), "r") as f:
-            f.readline()
-            f.readline()
-            f.readline()
-            lines = f.readlines()
-
-        data = np.zeros((len(lines), 3))
-        for i, line in enumerate(lines):
-            values = line.strip().split()
-            data[i, :] = [float(values[0]), float(values[1]), float(values[2])]
-
-        datas.append(data.tolist())
-    return {
-        'datas': datas
-    }
-
-@app.get("/data_2D_heatmap_6")
-async def root():
-    foldername = "./Projet_scientifique/etape_6/resultats/"
-    filenames = [filename for filename in os.listdir(foldername) if filename.endswith(".dat")]
-
-    datas = []
-
-    for idx, filename in enumerate(filenames):
-        with open(os.path.join(foldername, filename), "r") as f:
-            f.readline()
-            f.readline()
-            f.readline()
-            lines = f.readlines()
-
-        data = np.zeros((len(lines), 3))
-        for i, line in enumerate(lines):
-            values = line.strip().split()
-            data[i, :] = [float(values[0]), float(values[1]), float(values[2])]
-
-        datas.append(data.tolist())
-    return {
-        'datas': datas
-    }
 
 
 
