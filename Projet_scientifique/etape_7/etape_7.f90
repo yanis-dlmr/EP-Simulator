@@ -91,24 +91,6 @@ contains
                 p_n(i,j) = 0.0_DB
             end do
         end do
-
-        ! Conditions limites u
-        u_n(1, :) = U_0_x
-        u_n(nb_points_spatiaux_x, :) = U_L_x
-        u_n(:, 1) = U_0_y
-        u_n(:, nb_points_spatiaux_y) = U_L_y
-
-        ! Conditions limites v
-        v_n(1, :) = V_0_x
-        v_n(nb_points_spatiaux_x, :) = V_L_x
-        v_n(:, 1) = V_0_y
-        v_n(:, nb_points_spatiaux_y) = V_L_y
-
-        ! Conditions limites p 
-        p_n(1, :) = 0.0_DB
-        p_n(nb_points_spatiaux_x, :) = 0.0_DB
-        p_n(:, 1) = 0.0_DB
-        p_n(:, nb_points_spatiaux_y) = 1.0_DB
         
         ! Affectation aux array_temp
         u_temp(:,:) = u_n(:,:)
@@ -173,15 +155,20 @@ contains
         implicit none 
         Integer :: i, j
 
+        ! Conditions limites u
+        u_n(1, :) = U_0_x
+        u_n(nb_points_spatiaux_x, :) = U_L_x
+        u_n(:, 1) = U_0_y
+        u_n(:, nb_points_spatiaux_y) = U_L_y
+
         do j = 2, nb_points_spatiaux_y-1
             dy = maillage_y(j) - maillage_y(j-1)
             ! pas x
             do i = 2, nb_points_spatiaux_x-1
                 dx = maillage_x(i) - maillage_x(i-1)
                 u_temp(i,j)  = u_n(i,j) + dt*(-u_n(i,j)*(u_n(i,j)-u_n(i-1,j))/dx - v_n(i,j)*(u_n(i,j)-u_n(i,j-1))/dy &
-                + nu*((u_n(i+1,j)-2*u_n(i,j)+u_n(i-1,j))/dx**2 + (u_n(i,j+1)-2*u_n(i,j)+u_n(i,j-1))/dy**2) &
-                -1/rho * (p_n(i+1,j)-p_n(i-1,j))/(2.0_DB*dx))
-                
+                    + nu*((u_n(i+1,j)-2.0_DB*u_n(i,j)+u_n(i-1,j))/dx**2 + (u_n(i,j+1)-2*u_n(i,j)+u_n(i,j-1))/dy**2) &
+                    -1.0_DB/rho * (p_n(i+1,j)-p_n(i-1,j))/(2.0_DB*dx))
             end do
         end do
         
@@ -191,17 +178,21 @@ contains
     subroutine resolution_v()
         implicit none 
         Integer :: i, j
+        
+        ! Conditions limites v
+        v_n(1, :) = V_0_x
+        v_n(nb_points_spatiaux_x, :) = V_L_x
+        v_n(:, 1) = V_0_y
+        v_n(:, nb_points_spatiaux_y) = V_L_y
 
         do j = 2, nb_points_spatiaux_y-1
             dy = maillage_y(j) - maillage_y(j-1)
             ! pas x
             do i = 2, nb_points_spatiaux_x-1
                 dx = maillage_x(i) - maillage_x(i-1)
-
                 v_temp(i,j)  = v_n(i,j) + dt*(-u_n(i,j)*(v_n(i,j)-v_n(i-1,j))/dx - v_n(i,j)*(v_n(i,j)-v_n(i,j-1))/dy &
-                + nu*((v_n(i+1,j)-2*v_n(i,j)+v_n(i-1,j))/dx**2 + (v_n(i,j+1)-2*v_n(i,j)+v_n(i,j-1))/dy**2) &
-                -1/rho * (p_n(i+1,j)-p_n(i-1,j))/(2.0_DB*dy))
-
+                    + nu*((v_n(i+1,j)-2.0_DB*v_n(i,j)+v_n(i-1,j))/dx**2.0_DB + (v_n(i,j+1)-2.0_DB*v_n(i,j)+v_n(i,j-1))/dy**2.0_DB) &
+                    -1.0_DB/rho * (p_n(i+1,j)-p_n(i-1,j))/(2.0_DB*dy))
             end do
         end do
         
@@ -217,14 +208,18 @@ contains
 
         do while (critere_arret >= 10.0_DB**(-4.0_DB))
 
+            ! Conditions limites p
+            p_temp(:, 1) = 0.0_DB
+
             do j = 2, nb_points_spatiaux_y-1
                 dy = maillage_y(j) - maillage_y(j-1)
                 do i = 2, nb_points_spatiaux_x-1
                     dx = maillage_x(i) - maillage_x(i-1)
 
-                    b = rho/dt * ((u_n(i,j)-u_n(i-1,j))/dx + (v_n(i,j)-v_n(i,j-1))/dy) &
-                        - rho * (((u_n(i,j)-u_n(i-1,j))/dx)**2 + 2*((v_n(i,j)-v_n(i-1,j))/dx)*((u_n(i,j)-u_n(i,j-1))/dy) &
-                        +((v_n(i,j)-v_n(i-1,j))/dy)**2)
+                    b = rho/dt * ((u_n(i+1,j)-u_n(i-1,j))/(2.0_DB*dx) + (v_n(i,j+1)-v_n(i,j-1))/(2.0_DB*dy)) &
+                        - rho * (((u_n(i+1,j)-u_n(i-1,j))/(2.0_DB*dx))**2.0_DB + 2.0_DB*((v_n(i+1,j)-v_n(i-1,j))/(2.0_DB*dx)) &
+                        *((u_n(i,j+1)-u_n(i,j-1))/(2.0_DB*dy)) &
+                        +((v_n(i,j+1)-v_n(i,j-1))/(2.0_DB*dy))**2.0_DB)
 
                     p_temp(i,j) = dx**2.0_DB*dy**2.0_DB/(2*(dx**2.0_DB+dy**2.0_DB)) *&
                         ((p_n(i+1,j)+p_n(i-1,j))/dx**2.0_DB + (p_n(i,j+1)+p_n(i,j-1))/dy**2.0_DB-b)
@@ -243,6 +238,7 @@ contains
             p_temp(1,nb_points_spatiaux_y) = p_temp(2,nb_points_spatiaux_y-1)
             p_temp(nb_points_spatiaux_x,1) = p_temp(nb_points_spatiaux_x-1,2)
             p_temp(nb_points_spatiaux_x,nb_points_spatiaux_y) = p_temp(nb_points_spatiaux_x-1,nb_points_spatiaux_y-1)
+
             
             critere_arret = 0.0_DB
             do j = 1, nb_points_spatiaux_y
@@ -272,26 +268,18 @@ contains
         do while (t<tf)
             write(*,*) 'ploc'
 
-            write (*,*) 'debut dt'
             ! Détermination de dt
             call calcul_dt()
             t = t + dt
-            write (*,*) 'fin dt'
 
-            write (*,*) 'debut p'
             ! Résolution de p
             call resolution_p()
-            write (*,*) 'fin p'
 
-            write (*,*) 'debut u'
             ! Résolution de u
             call resolution_u()
-            write (*,*) 'fin u'
             
-            write (*,*) 'debut v'
             ! Résolution de v
             call resolution_v()
-            write (*,*) 'fin v'
 
             ! Réafectation des champs de vitesse
             u_n(:,:) = u_temp(:,:)

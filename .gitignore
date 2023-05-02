@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 Projet_scientifique/*/resultats/*
 Projet_scientifique/*/resultatsAnalytique/*
+Projet_scientifique/*/resultatsextra
 Projet_scientifique/*/*.exe
 
 # Distribution / packaging
