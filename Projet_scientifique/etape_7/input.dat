@@ -1,6 +1,5 @@
 CFL 0.2
 Fo 0.1
-coeff_diffusion 0.01
 nu 1.0
 rho 1.0
 tf 0.1

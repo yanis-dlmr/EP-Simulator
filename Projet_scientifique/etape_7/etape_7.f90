@@ -4,7 +4,7 @@ module global
     Integer, parameter :: DB = SELECTED_REAL_KIND(15,307)
     Integer :: etape_sauvegarde, &
         nb_points_spatiaux_x, nb_points_spatiaux_y, pas_t_save
-    Real (kind=DB) :: L_x, L_y, dx, dy, dt, t, CFL, Fo, coeff_diffusion, nu, rho, tf, &
+    Real (kind=DB) :: L_x, L_y, dx, dy, dt, t, CFL, Fo, nu, rho, tf, &
         U_0_x, U_L_x, U_0_y, U_L_y, V_0_x, V_L_x, V_0_y, V_L_y
     Real (kind=DB), dimension(:), allocatable :: maillage_x, maillage_y
     Real (kind=DB), dimension(:,:), allocatable :: u_n, u_temp, v_n, v_temp, p_n, p_temp
@@ -23,7 +23,6 @@ contains
 
         read(unit,*) name, CFL
         read(unit,*) name, Fo
-        read(unit,*) name, coeff_diffusion
         read(unit,*) name, nu
         read(unit,*) name, rho
         read(unit,*) name, tf
