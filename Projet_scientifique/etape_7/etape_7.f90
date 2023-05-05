@@ -3,9 +3,9 @@ module global
     
     Integer, parameter :: DB = SELECTED_REAL_KIND(15,307)
     Integer :: etape_sauvegarde, &
-        nb_points_spatiaux_x, nb_points_spatiaux_y, pas_t_save, &
+        nb_points_spatiaux_x, nb_points_spatiaux_y, pas_t_save
+    Real (kind=DB) :: L_x, L_y, dx, dy, dt, t, CFL, Fo, coeff_diffusion, nu, rho, tf, &
         U_0_x, U_L_x, U_0_y, U_L_y, V_0_x, V_L_x, V_0_y, V_L_y
-    Real (kind=DB) :: L_x, L_y, dx, dy, dt, t, CFL, Fo, coeff_diffusion, nu, rho,tf
     Real (kind=DB), dimension(:), allocatable :: maillage_x, maillage_y
     Real (kind=DB), dimension(:,:), allocatable :: u_n, u_temp, v_n, v_temp, p_n, p_temp
 
@@ -144,8 +144,8 @@ contains
         end do
 
         ! condition de stabilité de Fourrier
-        if (dt > Fo * dmin**2 / coeff_diffusion) then
-            dt = Fo * dmin**2 / coeff_diffusion
+        if (dt > Fo * dmin**2 / nu) then
+            dt = Fo * dmin**2 / nu
         end if
 
     end subroutine calcul_dt
@@ -156,10 +156,10 @@ contains
         Integer :: i, j
 
         ! Conditions limites u
-        u_n(1, :) = U_0_x
-        u_n(nb_points_spatiaux_x, :) = U_L_x
-        u_n(:, 1) = U_0_y
-        u_n(:, nb_points_spatiaux_y) = U_L_y
+        u_temp(1, :) = U_0_x
+        u_temp(nb_points_spatiaux_x, :) = U_L_x
+        u_temp(:, 1) = U_0_y
+        u_temp(:, nb_points_spatiaux_y) = U_L_y
 
         do j = 2, nb_points_spatiaux_y-1
             dy = maillage_y(j) - maillage_y(j-1)
@@ -167,8 +167,8 @@ contains
             do i = 2, nb_points_spatiaux_x-1
                 dx = maillage_x(i) - maillage_x(i-1)
                 u_temp(i,j)  = u_n(i,j) + dt*(-u_n(i,j)*(u_n(i,j)-u_n(i-1,j))/dx - v_n(i,j)*(u_n(i,j)-u_n(i,j-1))/dy &
-                    + nu*((u_n(i+1,j)-2.0_DB*u_n(i,j)+u_n(i-1,j))/dx**2 + (u_n(i,j+1)-2*u_n(i,j)+u_n(i,j-1))/dy**2) &
-                    -1.0_DB/rho * (p_n(i+1,j)-p_n(i-1,j))/(2.0_DB*dx))
+                    + nu*((u_n(i+1,j)-2.0_DB*u_n(i,j)+u_n(i-1,j))/(dx**2_DB) + (u_n(i,j+1)-2*u_n(i,j)+u_n(i,j-1))/(dy**2_DB)) &
+                    -(1.0_DB/rho) * (p_n(i+1,j)-p_n(i-1,j))/(2.0_DB*dx))
             end do
         end do
         
@@ -180,10 +180,10 @@ contains
         Integer :: i, j
         
         ! Conditions limites v
-        v_n(1, :) = V_0_x
-        v_n(nb_points_spatiaux_x, :) = V_L_x
-        v_n(:, 1) = V_0_y
-        v_n(:, nb_points_spatiaux_y) = V_L_y
+        v_temp(1, :) = V_0_x
+        v_temp(nb_points_spatiaux_x, :) = V_L_x
+        v_temp(:, 1) = V_0_y
+        v_temp(:, nb_points_spatiaux_y) = V_L_y
 
         do j = 2, nb_points_spatiaux_y-1
             dy = maillage_y(j) - maillage_y(j-1)
@@ -191,8 +191,8 @@ contains
             do i = 2, nb_points_spatiaux_x-1
                 dx = maillage_x(i) - maillage_x(i-1)
                 v_temp(i,j)  = v_n(i,j) + dt*(-u_n(i,j)*(v_n(i,j)-v_n(i-1,j))/dx - v_n(i,j)*(v_n(i,j)-v_n(i,j-1))/dy &
-                    + nu*((v_n(i+1,j)-2.0_DB*v_n(i,j)+v_n(i-1,j))/dx**2.0_DB + (v_n(i,j+1)-2.0_DB*v_n(i,j)+v_n(i,j-1))/dy**2.0_DB) &
-                    -1.0_DB/rho * (p_n(i+1,j)-p_n(i-1,j))/(2.0_DB*dy))
+                    + nu*((v_n(i+1,j)-2.0_DB*v_n(i,j)+v_n(i-1,j))/(dx**2.0_DB) + (v_n(i,j+1)-2.0_DB*v_n(i,j)+v_n(i,j-1)) & 
+                    /(dy**2.0_DB))-(1.0_DB/rho) * (p_n(i,j+1)-p_n(i,j-1))/(2.0_DB*dy))
             end do
         end do
         
@@ -207,9 +207,8 @@ contains
         critere_arret = 1.0_DB
 
         do while (critere_arret >= 10.0_DB**(-4.0_DB))
-
             ! Conditions limites p
-            p_temp(:, 1) = 0.0_DB
+            p_temp(:, nb_points_spatiaux_y) = 0.0_DB
 
             do j = 2, nb_points_spatiaux_y-1
                 dy = maillage_y(j) - maillage_y(j-1)
@@ -217,29 +216,29 @@ contains
                     dx = maillage_x(i) - maillage_x(i-1)
 
                     b = rho/dt * ((u_n(i+1,j)-u_n(i-1,j))/(2.0_DB*dx) + (v_n(i,j+1)-v_n(i,j-1))/(2.0_DB*dy)) &
-                        - rho * (((u_n(i+1,j)-u_n(i-1,j))/(2.0_DB*dx))**2.0_DB + 2.0_DB*((v_n(i+1,j)-v_n(i-1,j))/(2.0_DB*dx)) &
-                        *((u_n(i,j+1)-u_n(i,j-1))/(2.0_DB*dy)) &
+                        - rho * (((u_n(i+1,j)-u_n(i-1,j))/(2.0_DB*dx))**2.0_DB &
+                        + 2.0_DB*((v_n(i+1,j)-v_n(i-1,j))/(2.0_DB*dx))*((u_n(i,j+1)-u_n(i,j-1))/(2.0_DB*dy)) &
                         +((v_n(i,j+1)-v_n(i,j-1))/(2.0_DB*dy))**2.0_DB)
 
-                    p_temp(i,j) = dx**2.0_DB*dy**2.0_DB/(2*(dx**2.0_DB+dy**2.0_DB)) *&
-                        ((p_n(i+1,j)+p_n(i-1,j))/dx**2.0_DB + (p_n(i,j+1)+p_n(i,j-1))/dy**2.0_DB-b)
+                    p_temp(i,j) = (dx**2.0_DB)*(dy**2.0_DB)/(2*((dx**2.0_DB)+(dy**2.0_DB))) *&
+                        ((p_n(i+1,j)+p_n(i-1,j))/(dx**2.0_DB) + (p_n(i,j+1)+p_n(i,j-1))/(dy**2.0_DB)-b)
                 end do
             end do
 
+            p_temp(:, 1) = 0.0_DB
             do j = 2, nb_points_spatiaux_y-1
                 p_temp(1,j) = p_temp(2,j)
                 p_temp(nb_points_spatiaux_x,j) = p_temp(nb_points_spatiaux_x - 1,j)
             end do
             do i = 2, nb_points_spatiaux_x-1
-                p_temp(j,1) =  p_temp(j,2)
+                p_temp(i,1) =  p_temp(i,2)
             end do
 
-            p_temp(1,1) = p_temp(2,2)
-            p_temp(1,nb_points_spatiaux_y) = p_temp(2,nb_points_spatiaux_y-1)
-            p_temp(nb_points_spatiaux_x,1) = p_temp(nb_points_spatiaux_x-1,2)
-            p_temp(nb_points_spatiaux_x,nb_points_spatiaux_y) = p_temp(nb_points_spatiaux_x-1,nb_points_spatiaux_y-1)
+            p_temp(1,1) = p_temp(2,1)
+            p_temp(1,nb_points_spatiaux_y) = p_temp(2,nb_points_spatiaux_y)
+            p_temp(nb_points_spatiaux_x,1) = p_temp(nb_points_spatiaux_x-1,1)
+            p_temp(nb_points_spatiaux_x,nb_points_spatiaux_y) = p_temp(nb_points_spatiaux_x-1,nb_points_spatiaux_y)
 
-            
             critere_arret = 0.0_DB
             do j = 1, nb_points_spatiaux_y
                 do i = 1, nb_points_spatiaux_x
@@ -266,7 +265,6 @@ contains
         compteur_pas_t = 1
         dt = 1.0_DB
         do while (t<tf)
-            write(*,*) 'ploc'
 
             ! Détermination de dt
             call calcul_dt()

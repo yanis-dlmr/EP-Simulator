@@ -140,6 +140,7 @@ async function plot_plotly_2D_heatmap(data) {
             x: data[i].map(point => point[0]),
             y: data[i].map(point => point[1]),
             type: 'heatmap',
+            zsmooth: 'best',
             colorscale: 'Jet'
         };
         frames.push({
@@ -163,6 +164,7 @@ async function plot_plotly_2D_heatmap(data) {
             x: data[0].map(point => point[0]),
             y: data[0].map(point => point[1]),
             type: 'heatmap',
+            zsmooth: 'best',
             colorscale: 'Jet'
         }],
         layout: {
