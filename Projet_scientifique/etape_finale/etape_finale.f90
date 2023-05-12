@@ -396,8 +396,8 @@ end module global
 
 program etape7
     use global
-    implicit none
     !$ use OMP_LIB
+    implicit none
 
     !$ nbr_de_coeurs = OMP_GET_NUM_PROCS ()
     !$ write (* ,*) " Nombre de coeurs disponibles sur la machine :" ,nbr_de_coeurs
