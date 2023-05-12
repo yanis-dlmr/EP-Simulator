@@ -14,12 +14,58 @@
 
         <div class="main-container">
 
-
+            <div id="myDiv">
+                
+            </div>
             <div id="banane">
                 Banane
                 <button type="button" class="btn btn-primary" onclick="start_loading()" style="right:0;">Test loading</button>
             </div>
         </div>
+
+        <script>
+// Données de test pour les vecteurs
+var x = [0, 1, 2, 3];
+var y = [0, 2, 1, 3];
+var u = [1, 1, -1, 0];
+var v = [0, 1, 3, -1];
+
+// Calcul des positions des marqueurs de vecteurs
+var xx = [], yy = [];
+for (var i = 0; i < x.length; i++) {
+    xx.push(x[i], x[i] + u[i], null);
+    yy.push(y[i], y[i] + v[i], null);
+}
+
+// Création de la trace scatter avec mode "markers"
+var trace = {
+    x: xx,
+    y: yy,
+    mode: 'markers',
+    marker: {
+        symbol: 'line-ns-open',
+        size: 10,
+        color: 'blue',
+        line: {
+            width: 2,
+            color: 'black'
+        }
+    },
+    type: 'scatter'
+};
+
+// Création de la figure avec la trace
+var data = [trace];
+var layout = {
+    title: 'Champ de vecteur',
+    xaxis: {range: [-0.5, 3.5]},
+    yaxis: {range: [-0.5, 3.5]},
+    showlegend: false
+};
+Plotly.newPlot('myDiv', data, layout);
+
+
+        </script>
 
         <script src="menu.js"></script>
         <script src="script.js"></script>

@@ -2,4 +2,4 @@ L_x 1
 L_y 1
 nb_points_spatiaux_x 101
 nb_points_spatiaux_y 101
-pas_t_save 100
+pas_t_save 200

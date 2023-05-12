@@ -124,6 +124,23 @@
         ]
     },
     {
+        "name": "Etape F",
+        "subPages": [
+        {
+            "name": "Détails",
+            "link": "details_etape_finale.html"
+        },
+        {
+            "name": "Code Fortran",
+            "link": "code_etape_finale.html"
+        },
+        {
+            "name": "Exploitation",
+            "link": "exploitation_etape_finale.html"
+        }
+        ]
+    },
+    {
         "name": "Dev",
         "link": "dev.html"
     }
