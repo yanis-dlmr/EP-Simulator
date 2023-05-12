@@ -2,7 +2,7 @@ module global
     implicit none
     
     Integer, parameter :: DB = SELECTED_REAL_KIND(15,307)
-    Integer :: etape_sauvegarde, &
+    Integer :: etape_sauvegarde, nbr_de_coeurs, &
         nb_points_spatiaux_x, nb_points_spatiaux_y, pas_t_save
     Real (kind=DB) :: L_x, L_y, dx, dy, dt, t, CFL, Fo, nu, rho, tf, &
         U_0_x, U_L_x, U_0_y, U_L_y, V_0_x, V_L_x, V_0_y, V_L_y
