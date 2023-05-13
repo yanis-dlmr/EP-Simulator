@@ -342,13 +342,17 @@ contains
             t = t + dt
 
             ! Résolution de p
+            !$ write (*, *) "ploc5.1"
             call resolution_p()
+            !$ write (*, *) "ploc5.2"
 
             ! Résolution de u
             call resolution_u()
+            !$ write (*, *) "ploc5.3"
             
             ! Résolution de v
             call resolution_v()
+            !$ write (*, *) "ploc5.4"
 
             ! Réafectation des champs de vitesse
             u_n(:,:) = u_temp(:,:)
@@ -394,7 +398,7 @@ contains
 end module global
 
 
-program etape7
+program etape_finale
     use global
     !$ use OMP_LIB
     implicit none
@@ -403,10 +407,16 @@ program etape7
     !$ write (* ,*) " Nombre de coeurs disponibles sur la machine :" ,nbr_de_coeurs
 
     !$ call OMP_SET_NUM_THREADS (4)
+    !$ write (*, *) "ploc1"
     call import_input()
+    !$ write (*, *) "ploc2"
     call init_results()
+    !$ write (*, *) "ploc3"
     call definition_maillage()
+    !$ write (*, *) "ploc4"
     call conditions_initiale()
+    !$ write (*, *) "ploc5"
     call solution_finale()
+    !$ write (*, *) "ploc6"
 
-end program etape7
+end program etape_finale

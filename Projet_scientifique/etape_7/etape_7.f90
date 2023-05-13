@@ -110,6 +110,7 @@ contains
 
         ! détermination du plus petit dx
         dx = L_x
+
         do i = 1, nb_points_spatiaux_x - 1
             if ((maillage_x(i+1) - maillage_x(i)) < dx) then
                 dx = (maillage_x(i+1) - maillage_x(i))
@@ -117,9 +118,9 @@ contains
         end do
         ! détermination du plus petit dy
         dy = L_y
-        do i = 1, nb_points_spatiaux_y - 1
-            if ((maillage_y(i+1) - maillage_y(i)) < dy) then
-                dy = (maillage_y(i+1) - maillage_y(i))
+        do j = 1, nb_points_spatiaux_y - 1
+            if ((maillage_y(j+1) - maillage_y(j)) < dy) then
+                dy = (maillage_y(j+1) - maillage_y(j))
             end if
         end do
 
@@ -155,10 +156,15 @@ contains
         Integer :: i, j
 
         ! Conditions limites u
-        u_temp(1, :) = U_0_x
-        u_temp(nb_points_spatiaux_x, :) = U_L_x
-        u_temp(:, 1) = U_0_y
-        u_temp(:, nb_points_spatiaux_y) = U_L_y
+        do i = 1, nb_points_spatiaux_x
+            u_temp(i, 1) = U_0_y
+            u_temp(i, nb_points_spatiaux_y) = U_L_y
+        end do
+
+        do j = 1, nb_points_spatiaux_y
+                u_temp(1, j) = U_0_x
+                u_temp(nb_points_spatiaux_x, j) = U_L_x
+        end do
 
         do j = 2, nb_points_spatiaux_y-1
             dy = maillage_y(j) - maillage_y(j-1)
@@ -177,12 +183,17 @@ contains
     subroutine resolution_v()
         implicit none 
         Integer :: i, j
-        
+
         ! Conditions limites v
-        v_temp(1, :) = V_0_x
-        v_temp(nb_points_spatiaux_x, :) = V_L_x
-        v_temp(:, 1) = V_0_y
-        v_temp(:, nb_points_spatiaux_y) = V_L_y
+        do i = 1, nb_points_spatiaux_x
+            v_temp(i, 1) = V_0_y
+            v_temp(i, nb_points_spatiaux_y) = V_L_y
+        end do
+
+        do j = 1, nb_points_spatiaux_y
+            v_temp(1, j) = V_0_x
+            v_temp(nb_points_spatiaux_x, j) = V_L_x
+        end do
 
         do j = 2, nb_points_spatiaux_y-1
             dy = maillage_y(j) - maillage_y(j-1)
@@ -208,7 +219,7 @@ contains
         do while (critere_arret >= 10.0_DB**(-4.0_DB))
             ! Conditions limites p
             p_temp(:, nb_points_spatiaux_y) = 0.0_DB
-
+            
             do j = 2, nb_points_spatiaux_y-1
                 dy = maillage_y(j) - maillage_y(j-1)
                 do i = 2, nb_points_spatiaux_x-1
@@ -224,13 +235,17 @@ contains
                 end do
             end do
 
-            p_temp(:, 1) = 0.0_DB
             do j = 2, nb_points_spatiaux_y-1
                 p_temp(1,j) = p_temp(2,j)
                 p_temp(nb_points_spatiaux_x,j) = p_temp(nb_points_spatiaux_x - 1,j)
             end do
+
             do i = 2, nb_points_spatiaux_x-1
                 p_temp(i,1) =  p_temp(i,2)
+            end do
+            
+            do i = 1, nb_points_spatiaux_x
+                p_temp(:, 1) = 0.0_DB
             end do
 
             p_temp(1,1) = p_temp(2,1)
@@ -290,6 +305,7 @@ contains
 
             compteur_pas_t = compteur_pas_t + 1
         end do
+
     end subroutine solution_finale
 
     ! Sauvegarde des différents tableaux au format tecplot
@@ -324,7 +340,6 @@ end module global
 program etape7
     use global
     implicit none
-
     call import_input()
     call init_results()
     call definition_maillage()
