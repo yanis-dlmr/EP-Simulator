@@ -267,12 +267,11 @@ contains
         Real (kind=DB):: critere_arret, b, dx_carre, dy_carre
 
         !$ write (*, *) "ploc5.1.1"
-        !$OMP PARALLEL PRIVATE (i, j)
-        !$ write (*, *) "ploc5.1.2"
 
         critere_arret = 1.0_DB
 
         do while (critere_arret >= 1e-4_DB)
+            !$OMP PARALLEL PRIVATE (i, j)
             ! Conditions limites p
             p_temp(:, nb_points_spatiaux_y) = 0.0_DB
             
@@ -333,11 +332,10 @@ contains
 
             ! Réaffectation p
             p_n(:,:) = p_temp(:,:)
+            !$OMP END PARALLEL
         end do
 
-        !$ write (*, *) "ploc5.1.3"
-        !$OMP END PARALLEL
-        !$ write (*, *) "ploc5.1.4"
+        !$ write (*, *) "ploc5.1.2"
         
     end subroutine resolution_p
 
