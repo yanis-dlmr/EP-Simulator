@@ -266,7 +266,9 @@ contains
         Integer :: i, j
         Real (kind=DB):: critere_arret, b, dx_carre, dy_carre
 
+        !$ write (*, *) "ploc5.1.1"
         !$OMP PARALLEL PRIVATE (i, j)
+        !$ write (*, *) "ploc5.1.2"
 
         critere_arret = 1.0_DB
 
@@ -333,7 +335,9 @@ contains
             p_n(:,:) = p_temp(:,:)
         end do
 
+        !$ write (*, *) "ploc5.1.3"
         !$OMP END PARALLEL
+        !$ write (*, *) "ploc5.1.4"
         
     end subroutine resolution_p
 
