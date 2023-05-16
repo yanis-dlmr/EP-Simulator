@@ -6,7 +6,7 @@ import os
 import json
 import subprocess
 import uvicorn
-
+import pandas as pd
 import asyncio
 
 app = FastAPI()
@@ -149,6 +149,87 @@ async def receive_post_request(data_input: dict):
             data[i, :] = [float(values[0]), float(values[1]), float(values[col])]
 
         datas.append(data.tolist())
+    return {
+        'datas': datas
+    }
+
+@app.post("/compare_data_1D")
+async def receive_post_request(data_input: dict):
+    folderPath = data_input.get('path2')
+    filenames = [filename for filename in os.listdir(folderPath) if filename.endswith(".dat")]
+
+    datas = []
+
+    filename = filenames[-1]
+    with open(os.path.join(folderPath, filename), "r") as f:
+        f.readline()
+        f.readline()
+        f.readline()
+        lines = f.readlines()
+    
+    
+    sheetname = data_input.get('filename')
+    filename = data_input.get('filename') + '.xlsx'
+
+    data = np.zeros((len(lines), 2))
+    
+    try:
+        champs = data_input.get('champs')
+    except:
+        champs = 2
+    champsToCol = {
+        'x': 0,
+        'y': 1,
+        'u': 2,
+        'v': 3,
+        'p': 4
+    }
+    col = champsToCol.get(champs)
+    
+    if ('x' in filename) :
+        col_x = champsToCol.get('x')
+        col_y = champsToCol.get('y')
+    elif ('y' in filename):
+        col_x = champsToCol.get('y')
+        col_y = champsToCol.get('x')
+    
+    i = 0
+    for line in lines:
+        values = line.strip().split()
+        if (float(values[col_x]) == 0.5):
+            data[i, :] = [float(values[col_y]), float(values[col])]
+            i += 1
+
+    datas.append(data.tolist())
+    
+    sheetname = data_input.get('filename')
+    filename = data_input.get('filename') + '.xlsx'
+    folderPath = data_input.get('path1')
+    df1 = pd.read_excel (os.path.join(folderPath, filename), sheet_name=[sheetname])
+    df1_1=df1[sheetname]
+    
+    data = np.zeros((len(lines), 2))
+    
+    champsToName = {
+        'u': 'U:0',
+        'v': 'U:1',
+        'p': 'p',
+        'x': 'Points:0',
+        'y': 'Points:1'
+    }
+    col_name = champsToName.get(champs)
+    values = df1_1[col_name].values
+    if ('x' in sheetname) :
+        col_name = champsToName.get('y')
+    elif ('y' in sheetname):
+        col_name = champsToName.get('x')
+    x = df1_1[col_name].values
+    
+    for i, value in enumerate(values):
+        data[i, :] = [float(x[i]), float(value)]
+
+    datas.append(data.tolist())
+    
     return {
         'datas': datas
     }

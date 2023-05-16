@@ -216,7 +216,7 @@ contains
 
         critere_arret = 1.0_DB
 
-        do while (critere_arret >= 10.0_DB**(-4.0_DB))
+        do while (critere_arret >= 1e-4_DB)
             ! Conditions limites p
             p_temp(:, nb_points_spatiaux_y) = 0.0_DB
             

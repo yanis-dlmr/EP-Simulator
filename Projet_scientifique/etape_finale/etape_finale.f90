@@ -68,15 +68,15 @@ contains
         ! maillage x
         !$OMP DO
         do i = 1, nb_points_spatiaux_x
-            dx = L_x / (Real(nb_points_spatiaux_x - 1))
+            dx = L_x / (Real(nb_points_spatiaux_x - 1, DB))
             maillage_x(i) = dx * Real(i-1, DB)
         end do
-        !$OMP END DO nowait
+        !$OMP END DO 
 
         ! maillage y
         !$OMP DO
         do j = 1, nb_points_spatiaux_y
-            dy = L_y / (Real(nb_points_spatiaux_y - 1))
+            dy = L_y / (Real(nb_points_spatiaux_y - 1, DB))
             maillage_y(j) = dy * Real(j-1, DB)
         end do
         !$OMP END DO
@@ -132,7 +132,7 @@ contains
                 dx = (maillage_x(i+1) - maillage_x(i))
             end if
         end do
-        !$OMP END DO nowait
+        !$OMP END DO 
         ! détermination du plus petit dy
         dy = L_y
         !$OMP DO
@@ -177,6 +177,7 @@ contains
     subroutine resolution_u()
         implicit none 
         Integer :: i, j
+        Real (kind=DB) :: dx_carre, dy_carre
 
         !$OMP PARALLEL PRIVATE (i, j)
 
@@ -187,7 +188,7 @@ contains
             u_temp(i, 1) = U_0_y
             u_temp(i, nb_points_spatiaux_y) = U_L_y
         end do
-        !$OMP END DO nowait
+        !$OMP END DO 
 
         !$OMP DO
         do j = 1, nb_points_spatiaux_y
@@ -199,11 +200,13 @@ contains
         !$OMP DO
         do j = 2, nb_points_spatiaux_y-1
             dy = maillage_y(j) - maillage_y(j-1)
+            dy_carre = dy**2
             ! pas x
             do i = 2, nb_points_spatiaux_x-1
                 dx = maillage_x(i) - maillage_x(i-1)
+                dx_carre = dx**2
                 u_temp(i,j)  = u_n(i,j) + dt*(-u_n(i,j)*(u_n(i,j)-u_n(i-1,j))/dx - v_n(i,j)*(u_n(i,j)-u_n(i,j-1))/dy &
-                    + nu*((u_n(i+1,j)-2.0_DB*u_n(i,j)+u_n(i-1,j))/(dx**2_DB) + (u_n(i,j+1)-2*u_n(i,j)+u_n(i,j-1))/(dy**2_DB)) &
+                    + nu*((u_n(i+1,j)-2.0_DB*u_n(i,j)+u_n(i-1,j))/(dx_carre) + (u_n(i,j+1)-2.0_DB*u_n(i,j)+u_n(i,j-1))/(dy_carre)) &
                     -(1.0_DB/rho) * (p_n(i+1,j)-p_n(i-1,j))/(2.0_DB*dx))
             end do
         end do
@@ -217,6 +220,7 @@ contains
     subroutine resolution_v()
         implicit none 
         Integer :: i, j
+        Real (kind=DB) :: dx_carre, dy_carre
         
         !$OMP PARALLEL PRIVATE (i, j)
 
@@ -226,7 +230,7 @@ contains
             v_temp(i, 1) = V_0_y
             v_temp(i, nb_points_spatiaux_y) = V_L_y
         end do
-        !$OMP END DO nowait
+        !$OMP END DO 
         !$OMP DO
         do j = 1, nb_points_spatiaux_y
             v_temp(1, j) = V_0_x
@@ -237,13 +241,18 @@ contains
         !$OMP DO
         do j = 2, nb_points_spatiaux_y-1
             dy = maillage_y(j) - maillage_y(j-1)
+            dy_carre = dy**2
+
             ! pas x
             do i = 2, nb_points_spatiaux_x-1
                 dx = maillage_x(i) - maillage_x(i-1)
+                dx_carre = dx**2
+
                 v_temp(i,j)  = v_n(i,j) + dt*(-u_n(i,j)*(v_n(i,j)-v_n(i-1,j))/dx - v_n(i,j)*(v_n(i,j)-v_n(i,j-1))/dy &
-                    + nu*((v_n(i+1,j)-2.0_DB*v_n(i,j)+v_n(i-1,j))/(dx**2.0_DB) + (v_n(i,j+1)-2.0_DB*v_n(i,j)+v_n(i,j-1)) & 
-                    /(dy**2.0_DB))-(1.0_DB/rho) * (p_n(i,j+1)-p_n(i,j-1))/(2.0_DB*dy))
+                    + nu*((v_n(i+1,j)-2.0_DB*v_n(i,j)+v_n(i-1,j))/(dx_carre) + (v_n(i,j+1)-2.0_DB*v_n(i,j)+v_n(i,j-1)) & 
+                    /(dy_carre))-(1.0_DB/rho) * (p_n(i,j+1)-p_n(i,j-1))/(2.0_DB*dy))
             end do
+
         end do
         !$OMP END DO
 
@@ -255,29 +264,31 @@ contains
     subroutine resolution_p()
         implicit none 
         Integer :: i, j
-        Real (kind=DB):: critere_arret, b
+        Real (kind=DB):: critere_arret, b, dx_carre, dy_carre
 
         !$OMP PARALLEL PRIVATE (i, j)
 
         critere_arret = 1.0_DB
 
-        do while (critere_arret >= 10.0_DB**(-4.0_DB))
+        do while (critere_arret >= 1e-4_DB)
             ! Conditions limites p
             p_temp(:, nb_points_spatiaux_y) = 0.0_DB
             
             !$OMP DO
             do j = 2, nb_points_spatiaux_y-1
                 dy = maillage_y(j) - maillage_y(j-1)
+                dy_carre = dy**2
                 do i = 2, nb_points_spatiaux_x-1
                     dx = maillage_x(i) - maillage_x(i-1)
+                    dx_carre = dx**2
 
                     b = rho/dt * ((u_n(i+1,j)-u_n(i-1,j))/(2.0_DB*dx) + (v_n(i,j+1)-v_n(i,j-1))/(2.0_DB*dy)) &
-                        - rho * (((u_n(i+1,j)-u_n(i-1,j))/(2.0_DB*dx))**2.0_DB &
+                        - rho * (((u_n(i+1,j)-u_n(i-1,j))/(2.0_DB*dx))**2 &
                         + 2.0_DB*((v_n(i+1,j)-v_n(i-1,j))/(2.0_DB*dx))*((u_n(i,j+1)-u_n(i,j-1))/(2.0_DB*dy)) &
-                        +((v_n(i,j+1)-v_n(i,j-1))/(2.0_DB*dy))**2.0_DB)
+                        +((v_n(i,j+1)-v_n(i,j-1))/(2.0_DB*dy))**2)
 
-                    p_temp(i,j) = (dx**2.0_DB)*(dy**2.0_DB)/(2*((dx**2.0_DB)+(dy**2.0_DB))) *&
-                        ((p_n(i+1,j)+p_n(i-1,j))/(dx**2.0_DB) + (p_n(i,j+1)+p_n(i,j-1))/(dy**2.0_DB)-b)
+                    p_temp(i,j) = (dx_carre)*(dy_carre)/(2.0_DB*((dx_carre)+(dy_carre))) *&
+                        ((p_n(i+1,j)+p_n(i-1,j))/(dx_carre) + (p_n(i,j+1)+p_n(i,j-1))/(dy_carre)-b)
                 end do
             end do
             !$OMP END DO
@@ -287,7 +298,7 @@ contains
                 p_temp(1,j) = p_temp(2,j)
                 p_temp(nb_points_spatiaux_x,j) = p_temp(nb_points_spatiaux_x - 1,j)
             end do
-            !$OMP END DO nowait
+            !$OMP END DO 
 
             !$OMP DO
             do i = 2, nb_points_spatiaux_x-1

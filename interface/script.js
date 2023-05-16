@@ -221,6 +221,53 @@ async function plot_plotly_2D_heatmap(data) {
 };
 
 
+async function compare_plotly(data_send) {
+    var graphContainer = document.getElementById('graph_slide');
+    Plotly.purge(graphContainer);
+
+    var url = "http://127.0.0.1:8000/compare_data_1D"
+    start_loading();
+    const resp = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data_send)
+    });
+    let data = await resp.json();
+    compare_plotly_1D_chart(data.datas);
+    end_loading();
+};
+
+async function compare_plotly_1D_chart(data) {
+    var plotData = [];
+
+    for (var i = 0; i < data.length; i++) {
+        plotData.push({
+            x: data[i].map(point => point[0]),
+            y: data[i].map(point => point[1]),
+            type: 'scatter',
+            mode: 'lines',
+            line: {
+                color: 'blue',
+                width: 2
+            },
+        });
+    }
+    
+    Plotly.plot('graph_slide', {
+        data: plotData,
+        layout: {
+            width: 720,
+            height: 720,
+            showlegend: true,
+            legend: {"orientation": "h"},
+            autosize: true,
+        },
+    });
+};
+
+
 async function plot() {
     start_loading();
     const myImage = new Image(300,300);
