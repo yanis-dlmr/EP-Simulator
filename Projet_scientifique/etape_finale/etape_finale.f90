@@ -295,18 +295,24 @@ contains
             end do
             !$OMP END DO
 
+            !$OMP DO
             do j = 2, nb_points_spatiaux_y-1
                 p_temp(1,j) = p_temp(2,j)
                 p_temp(nb_points_spatiaux_x,j) = p_temp(nb_points_spatiaux_x - 1,j)
             end do
+            !$OMP END DO 
 
+            !$OMP DO
             do i = 2, nb_points_spatiaux_x-1
                 p_temp(i,1) =  p_temp(i,2)
             end do
+            !$OMP END DO
             
+            !$OMP DO
             do i = 1, nb_points_spatiaux_x
                 p_temp(:, 1) = 0.0_DB
             end do
+            !$OMP END DO
 
             p_temp(1,1) = p_temp(2,1)
             p_temp(1,nb_points_spatiaux_y) = p_temp(2,nb_points_spatiaux_y)
@@ -314,11 +320,13 @@ contains
             p_temp(nb_points_spatiaux_x,nb_points_spatiaux_y) = p_temp(nb_points_spatiaux_x-1,nb_points_spatiaux_y)
 
             critere_arret = 0.0_DB
+            !$OMP DO
             do j = 1, nb_points_spatiaux_y
                 do i = 1, nb_points_spatiaux_x
                     critere_arret = critere_arret + (p_temp(i,j) - p_n(i,j))**2.0_DB
                 end do
             end do
+            !$OMP END DO
 
             critere_arret = (critere_arret/(real(nb_points_spatiaux_x, DB)*real(nb_points_spatiaux_y, DB)))**0.5_DB
             !print *, critere_arret
