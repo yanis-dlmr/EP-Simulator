@@ -13,6 +13,6 @@ V_0_x 0.0
 V_L_x 0.0
 V_0_y 0.0
 V_L_y 0.0
-nb_points_spatiaux_x 51
-nb_points_spatiaux_y 51
+nb_points_spatiaux_x 101
+nb_points_spatiaux_y 101
 pas_t_save 100

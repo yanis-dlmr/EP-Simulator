@@ -63,25 +63,17 @@ contains
         implicit none 
         Integer :: i, j
 
-        !$OMP PARALLEL PRIVATE (i, j)
-
         ! maillage x
-        !$OMP DO
         do i = 1, nb_points_spatiaux_x
             dx = L_x / (Real(nb_points_spatiaux_x - 1, DB))
             maillage_x(i) = dx * Real(i-1, DB)
         end do
-        !$OMP END DO 
 
         ! maillage y
-        !$OMP DO
         do j = 1, nb_points_spatiaux_y
             dy = L_y / (Real(nb_points_spatiaux_y - 1, DB))
             maillage_y(j) = dy * Real(j-1, DB)
         end do
-        !$OMP END DO
-
-        !$OMP END PARALLEL
     end subroutine definition_maillage
 
     ! Initialisation du maillage à t = 0
@@ -89,10 +81,8 @@ contains
         implicit none 
         Integer :: i, j
 
-        !$OMP PARALLEL PRIVATE (i, j)
 
         ! Init tableau u, v, p
-        !$OMP DO
         do j = 1, nb_points_spatiaux_y 
             do i = 1, nb_points_spatiaux_x
                 u_n(i,j) = 0.0_DB
@@ -100,14 +90,11 @@ contains
                 p_n(i,j) = 0.0_DB
             end do
         end do
-        !$OMP END DO
         
         ! Affectation aux array_temp
         u_temp(:,:) = u_n(:,:)
         v_temp(:,:) = v_n(:,:)
         p_temp(:,:) = p_n(:,:)
-
-        !$OMP END PARALLEL
 
         ! Sauvegarde dans un fichier .dat au format TECPLOT
         etape_sauvegarde = 0
@@ -121,27 +108,21 @@ contains
         Integer :: i, j
         Real (kind=DB) :: dmin
 
-        !$OMP PARALLEL PRIVATE (i, j)
-
         ! détermination du plus petit dx
         dx = L_x
 
-        !$OMP DO
         do i = 1, nb_points_spatiaux_x - 1
             if ((maillage_x(i+1) - maillage_x(i)) < dx) then
                 dx = (maillage_x(i+1) - maillage_x(i))
             end if
         end do
-        !$OMP END DO 
         ! détermination du plus petit dy
         dy = L_y
-        !$OMP DO
         do j = 1, nb_points_spatiaux_y - 1
             if ((maillage_y(j+1) - maillage_y(j)) < dy) then
                 dy = (maillage_y(j+1) - maillage_y(j))
             end if
         end do
-        !$OMP END DO
 
         ! détermination du plus petit pas spatial
         if (dx < dy) then
@@ -150,7 +131,6 @@ contains
             dmin = dy
         end if
 
-        !$OMP DO
         do j = 1, nb_points_spatiaux_y
             do i = 1, nb_points_spatiaux_x
                 ! condition de stabilité CFL
@@ -162,9 +142,6 @@ contains
                 end if
             end do
         end do
-        !$OMP END DO
-        
-        !$OMP END PARALLEL
 
         ! condition de stabilité de Fourrier
         if (dt > Fo * dmin**2 / nu) then
@@ -179,25 +156,18 @@ contains
         Integer :: i, j
         Real (kind=DB) :: dx_carre, dy_carre
 
-        !$OMP PARALLEL PRIVATE (i, j)
 
         ! Conditions limites u
-
-        !$OMP DO
         do i = 1, nb_points_spatiaux_x
             u_temp(i, 1) = U_0_y
             u_temp(i, nb_points_spatiaux_y) = U_L_y
         end do
-        !$OMP END DO 
 
-        !$OMP DO
         do j = 1, nb_points_spatiaux_y
                 u_temp(1, j) = U_0_x
                 u_temp(nb_points_spatiaux_x, j) = U_L_x
         end do
-        !$OMP END DO
 
-        !$OMP DO
         do j = 2, nb_points_spatiaux_y-1
             dy = maillage_y(j) - maillage_y(j-1)
             dy_carre = dy**2
@@ -210,9 +180,6 @@ contains
                     -(1.0_DB/rho) * (p_n(i+1,j)-p_n(i-1,j))/(2.0_DB*dx))
             end do
         end do
-        !$OMP END DO
-        
-        !$OMP END PARALLEL
         
     end subroutine resolution_u
 
@@ -221,24 +188,16 @@ contains
         implicit none 
         Integer :: i, j
         Real (kind=DB) :: dx_carre, dy_carre
-        
-        !$OMP PARALLEL PRIVATE (i, j)
 
         ! Conditions limites v
-        !$OMP DO
         do i = 1, nb_points_spatiaux_x
             v_temp(i, 1) = V_0_y
             v_temp(i, nb_points_spatiaux_y) = V_L_y
         end do
-        !$OMP END DO 
-        !$OMP DO
         do j = 1, nb_points_spatiaux_y
             v_temp(1, j) = V_0_x
             v_temp(nb_points_spatiaux_x, j) = V_L_x
         end do
-        !$OMP END DO
-
-        !$OMP DO
         do j = 2, nb_points_spatiaux_y-1
             dy = maillage_y(j) - maillage_y(j-1)
             dy_carre = dy**2
@@ -254,9 +213,6 @@ contains
             end do
 
         end do
-        !$OMP END DO
-
-        !$OMP END PARALLEL
         
     end subroutine resolution_v
 
@@ -271,10 +227,10 @@ contains
         critere_arret = 1.0_DB
 
         do while (critere_arret >= 1e-4_DB)
-            !$OMP PARALLEL PRIVATE (i, j)
             ! Conditions limites p
             p_temp(:, nb_points_spatiaux_y) = 0.0_DB
             
+            !$OMP PARALLEL PRIVATE (i, j, b) SHARED (p_temp, dx, dy, dx_carre, dy_carre)
             !$OMP DO
             do j = 2, nb_points_spatiaux_y-1
                 dy = maillage_y(j) - maillage_y(j-1)
@@ -293,25 +249,20 @@ contains
                 end do
             end do
             !$OMP END DO
+            !$OMP END PARALLEL
 
-            !$OMP DO
             do j = 2, nb_points_spatiaux_y-1
                 p_temp(1,j) = p_temp(2,j)
                 p_temp(nb_points_spatiaux_x,j) = p_temp(nb_points_spatiaux_x - 1,j)
             end do
-            !$OMP END DO 
 
-            !$OMP DO
             do i = 2, nb_points_spatiaux_x-1
                 p_temp(i,1) =  p_temp(i,2)
             end do
-            !$OMP END DO
             
-            !$OMP DO
             do i = 1, nb_points_spatiaux_x
                 p_temp(:, 1) = 0.0_DB
             end do
-            !$OMP END DO
 
             p_temp(1,1) = p_temp(2,1)
             p_temp(1,nb_points_spatiaux_y) = p_temp(2,nb_points_spatiaux_y)
@@ -319,20 +270,17 @@ contains
             p_temp(nb_points_spatiaux_x,nb_points_spatiaux_y) = p_temp(nb_points_spatiaux_x-1,nb_points_spatiaux_y)
 
             critere_arret = 0.0_DB
-            !$OMP DO
             do j = 1, nb_points_spatiaux_y
                 do i = 1, nb_points_spatiaux_x
                     critere_arret = critere_arret + (p_temp(i,j) - p_n(i,j))**2.0_DB
                 end do
             end do
-            !$OMP END DO
 
             critere_arret = (critere_arret/(real(nb_points_spatiaux_x, DB)*real(nb_points_spatiaux_y, DB)))**0.5_DB
             !print *, critere_arret
 
             ! Réaffectation p
             p_n(:,:) = p_temp(:,:)
-            !$OMP END PARALLEL
         end do
 
         !$ write (*, *) "ploc5.1.2"
@@ -419,7 +367,7 @@ program etape_finale
     !$ nbr_de_coeurs = OMP_GET_NUM_PROCS ()
     !$ write (* ,*) " Nombre de coeurs disponibles sur la machine :" ,nbr_de_coeurs
 
-    !$ call OMP_SET_NUM_THREADS (4)
+    !$ call OMP_SET_NUM_THREADS (8)
     !$ write (*, *) "ploc1"
     call import_input()
     !$ write (*, *) "ploc2"

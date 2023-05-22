@@ -171,7 +171,7 @@ async def receive_post_request(data_input: dict):
     sheetname = data_input.get('filename')
     filename = data_input.get('filename') + '.xlsx'
 
-    data = np.zeros((len(lines), 2))
+    data = np.zeros((int((len(lines))**0.5), 2))
     
     try:
         champs = data_input.get('champs')
@@ -186,12 +186,12 @@ async def receive_post_request(data_input: dict):
     }
     col = champsToCol.get(champs)
     
-    if ('x' in filename) :
-        col_x = champsToCol.get('x')
-        col_y = champsToCol.get('y')
-    elif ('y' in filename):
+    if ('Y' in filename) :
         col_x = champsToCol.get('y')
         col_y = champsToCol.get('x')
+    elif ('X' in filename):
+        col_x = champsToCol.get('x')
+        col_y = champsToCol.get('y')
     
     i = 0
     for line in lines:
@@ -199,6 +199,7 @@ async def receive_post_request(data_input: dict):
         if (float(values[col_x]) == 0.5):
             data[i, :] = [float(values[col_y]), float(values[col])]
             i += 1
+
 
     datas.append(data.tolist())
     
@@ -208,7 +209,7 @@ async def receive_post_request(data_input: dict):
     df1 = pd.read_excel (os.path.join(folderPath, filename), sheet_name=[sheetname])
     df1_1=df1[sheetname]
     
-    data = np.zeros((len(lines), 2))
+    data = np.zeros((1001, 2))
     
     champsToName = {
         'u': 'U:0',
@@ -217,13 +218,13 @@ async def receive_post_request(data_input: dict):
         'x': 'Points:0',
         'y': 'Points:1'
     }
-    col_name = champsToName.get(champs)
-    values = df1_1[col_name].values
-    if ('x' in sheetname) :
-        col_name = champsToName.get('y')
-    elif ('y' in sheetname):
-        col_name = champsToName.get('x')
-    x = df1_1[col_name].values
+    col_name1 = champsToName.get(champs)
+    values = df1_1[col_name1].values
+    if ('X' in sheetname) :
+        col_name2 = champsToName.get('y')
+    elif ('Y' in sheetname):
+        col_name2 = champsToName.get('x')
+    x = df1_1[col_name2].values
     
     for i, value in enumerate(values):
         data[i, :] = [float(x[i]), float(value)]
