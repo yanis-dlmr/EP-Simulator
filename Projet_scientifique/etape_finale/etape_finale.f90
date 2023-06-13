@@ -2,9 +2,9 @@ module global
     implicit none
     
     Integer, parameter :: DB = SELECTED_REAL_KIND(15,307)
-    Integer :: etape_sauvegarde, nbr_de_coeurs, &
+    Integer :: etape_sauvegarde, &
         nb_points_spatiaux_x, nb_points_spatiaux_y, pas_t_save
-    Real (kind=DB) :: L_x, L_y, dx, dy, dt, t, CFL, Fo, nu, rho, tf, &
+    Real (kind=DB) :: L_x, L_y, dt, t, CFL, Fo, nu, rho, tf, &
         U_0_x, U_L_x, U_0_y, U_L_y, V_0_x, V_L_x, V_0_y, V_L_y
     Real (kind=DB), dimension(:), allocatable :: maillage_x, maillage_y
     Real (kind=DB), dimension(:,:), allocatable :: u_n, u_temp, v_n, v_temp, p_n, p_temp
@@ -62,34 +62,38 @@ contains
     subroutine definition_maillage()
         implicit none 
         Integer :: i, j
+        Real (kind=DB) :: dx, dy
 
         ! maillage x
+        !!$OMP PARALLEL PRIVATE (i, dx)
+        !!$OMP DO
         do i = 1, nb_points_spatiaux_x
             dx = L_x / (Real(nb_points_spatiaux_x - 1, DB))
             maillage_x(i) = dx * Real(i-1, DB)
         end do
+        !!$OMP END DO
+        !!$OMP END PARALLEL
 
         ! maillage y
+        !!$OMP PARALLEL PRIVATE (j, dy)
+        !!$OMP DO
         do j = 1, nb_points_spatiaux_y
             dy = L_y / (Real(nb_points_spatiaux_y - 1, DB))
             maillage_y(j) = dy * Real(j-1, DB)
         end do
+        !!$OMP END DO
+        !!$OMP END PARALLEL
     end subroutine definition_maillage
 
     ! Initialisation du maillage à t = 0
     subroutine conditions_initiale()
         implicit none 
-        Integer :: i, j
 
 
         ! Init tableau u, v, p
-        do j = 1, nb_points_spatiaux_y 
-            do i = 1, nb_points_spatiaux_x
-                u_n(i,j) = 0.0_DB
-                v_n(i,j) = 0.0_DB
-                p_n(i,j) = 0.0_DB
-            end do
-        end do
+        u_n(1:nb_points_spatiaux_x,1:nb_points_spatiaux_y) = 0.0_DB
+        v_n(1:nb_points_spatiaux_x,1:nb_points_spatiaux_y) = 0.0_DB
+        p_n(1:nb_points_spatiaux_x,1:nb_points_spatiaux_y) = 0.0_DB
         
         ! Affectation aux array_temp
         u_temp(:,:) = u_n(:,:)
@@ -106,23 +110,33 @@ contains
     subroutine calcul_dt()
         implicit none 
         Integer :: i, j
-        Real (kind=DB) :: dmin
+        Real (kind=DB) :: dmin, dx, dy
 
         ! détermination du plus petit dx
         dx = L_x
 
+        !!$OMP PARALLEL PRIVATE (i, dx)
+        !!$OMP DO
         do i = 1, nb_points_spatiaux_x - 1
             if ((maillage_x(i+1) - maillage_x(i)) < dx) then
                 dx = (maillage_x(i+1) - maillage_x(i))
             end if
         end do
+        !!$OMP END DO
+        !!$OMP END PARALLEL
+
         ! détermination du plus petit dy
         dy = L_y
+
+        !!$OMP PARALLEL PRIVATE (j, dy)
+        !!$OMP DO
         do j = 1, nb_points_spatiaux_y - 1
             if ((maillage_y(j+1) - maillage_y(j)) < dy) then
                 dy = (maillage_y(j+1) - maillage_y(j))
             end if
         end do
+        !!$OMP END DO
+        !!$OMP END PARALLEL
 
         ! détermination du plus petit pas spatial
         if (dx < dy) then
@@ -131,17 +145,21 @@ contains
             dmin = dy
         end if
 
+        !!$OMP PARALLEL PRIVATE (i, j) SHARED (dt)
+        !!$OMP DO
         do j = 1, nb_points_spatiaux_y
             do i = 1, nb_points_spatiaux_x
                 ! condition de stabilité CFL
                 if ((CFL * dmin / abs(u_n(i,j)) < dt).AND.(u_n(i,j)/=0)) then
                     dt = CFL * dmin / abs(u_n(i,j))
                 end if
-                if ((CFL * dmin / abs(u_n(i,j)) < dt).AND.(v_n(i,j)/=0)) then
+                if ((CFL * dmin / abs(v_n(i,j)) < dt).AND.(v_n(i,j)/=0)) then
                     dt = CFL * dmin / abs(v_n(i,j))
                 end if
             end do
         end do
+        !!$OMP END DO
+        !!$OMP END PARALLEL
 
         ! condition de stabilité de Fourrier
         if (dt > Fo * dmin**2 / nu) then
@@ -154,19 +172,17 @@ contains
     subroutine resolution_u()
         implicit none 
         Integer :: i, j
-        Real (kind=DB) :: dx_carre, dy_carre
+        Real (kind=DB) :: dx_carre, dy_carre, dx, dy
 
 
         ! Conditions limites u
-        do i = 1, nb_points_spatiaux_x
-            u_temp(i, 1) = U_0_y
-            u_temp(i, nb_points_spatiaux_y) = U_L_y
-        end do
+        u_temp(1:nb_points_spatiaux_x, 1) = U_0_y
+        u_temp(1:nb_points_spatiaux_x, nb_points_spatiaux_y) = U_L_y
+        u_temp(1, 1:nb_points_spatiaux_y) = U_0_x
+        u_temp(nb_points_spatiaux_x, 1:nb_points_spatiaux_y) = U_L_x
 
-        do j = 1, nb_points_spatiaux_y
-                u_temp(1, j) = U_0_x
-                u_temp(nb_points_spatiaux_x, j) = U_L_x
-        end do
+        !!$OMP PARALLEL PRIVATE (i, j, dx, dy, dx_carre, dy_carre) SHARED (u_temp)
+        !!$OMP DO
 
         do j = 2, nb_points_spatiaux_y-1
             dy = maillage_y(j) - maillage_y(j-1)
@@ -181,23 +197,26 @@ contains
             end do
         end do
         
+        !!$OMP END DO
+        !!$OMP END PARALLEL
+        
     end subroutine resolution_u
 
     ! Détermination du nouveau champs de vitesse v
     subroutine resolution_v()
         implicit none 
         Integer :: i, j
-        Real (kind=DB) :: dx_carre, dy_carre
+        Real (kind=DB) :: dx_carre, dy_carre, dx, dy
 
         ! Conditions limites v
-        do i = 1, nb_points_spatiaux_x
-            v_temp(i, 1) = V_0_y
-            v_temp(i, nb_points_spatiaux_y) = V_L_y
-        end do
-        do j = 1, nb_points_spatiaux_y
-            v_temp(1, j) = V_0_x
-            v_temp(nb_points_spatiaux_x, j) = V_L_x
-        end do
+        v_temp(1:nb_points_spatiaux_x, 1) = V_0_y
+        v_temp(1:nb_points_spatiaux_x, nb_points_spatiaux_y) = V_L_y
+        v_temp(1, 1:nb_points_spatiaux_y) = V_0_x
+        v_temp(nb_points_spatiaux_x, 1:nb_points_spatiaux_y) = V_L_x
+
+        !!$OMP PARALLEL PRIVATE (i, j, dx, dy, dx_carre, dy_carre) SHARED (v_temp)
+        !!$OMP DO
+
         do j = 2, nb_points_spatiaux_y-1
             dy = maillage_y(j) - maillage_y(j-1)
             dy_carre = dy**2
@@ -213,6 +232,9 @@ contains
             end do
 
         end do
+
+        !!$OMP END DO
+        !!$OMP END PARALLEL
         
     end subroutine resolution_v
 
@@ -220,9 +242,7 @@ contains
     subroutine resolution_p()
         implicit none 
         Integer :: i, j
-        Real (kind=DB):: critere_arret, b, dx_carre, dy_carre
-
-        !$ write (*, *) "ploc5.1.1"
+        Real (kind=DB):: critere_arret, b, dx_carre, dy_carre, dx, dy
 
         critere_arret = 1.0_DB
 
@@ -230,8 +250,9 @@ contains
             ! Conditions limites p
             p_temp(:, nb_points_spatiaux_y) = 0.0_DB
             
-            !$OMP PARALLEL PRIVATE (i, j, b) SHARED (p_temp, dx, dy, dx_carre, dy_carre)
+            !$OMP PARALLEL PRIVATE (i, j, b, dx, dy, dx_carre, dy_carre) SHARED (p_temp)
             !$OMP DO
+
             do j = 2, nb_points_spatiaux_y-1
                 dy = maillage_y(j) - maillage_y(j-1)
                 dy_carre = dy**2
@@ -248,21 +269,16 @@ contains
                         ((p_n(i+1,j)+p_n(i-1,j))/(dx_carre) + (p_n(i,j+1)+p_n(i,j-1))/(dy_carre)-b)
                 end do
             end do
-            !$OMP END DO
-            !$OMP END PARALLEL
 
-            do j = 2, nb_points_spatiaux_y-1
-                p_temp(1,j) = p_temp(2,j)
-                p_temp(nb_points_spatiaux_x,j) = p_temp(nb_points_spatiaux_x - 1,j)
-            end do
+            !!$OMP END DO
+            !!$OMP END PARALLEL
 
-            do i = 2, nb_points_spatiaux_x-1
-                p_temp(i,1) =  p_temp(i,2)
-            end do
+            p_temp(1,2:nb_points_spatiaux_y-1) = p_temp(2,2:nb_points_spatiaux_y-1)
+            p_temp(nb_points_spatiaux_x,2:nb_points_spatiaux_y-1) = p_temp(nb_points_spatiaux_x - 1,2:nb_points_spatiaux_y-1)
+
+            p_temp(2:nb_points_spatiaux_x-1,1) =  p_temp(2:nb_points_spatiaux_x-1,2)
             
-            do i = 1, nb_points_spatiaux_x
-                p_temp(:, 1) = 0.0_DB
-            end do
+            p_temp(1:nb_points_spatiaux_x, 1) = 0.0_DB
 
             p_temp(1,1) = p_temp(2,1)
             p_temp(1,nb_points_spatiaux_y) = p_temp(2,nb_points_spatiaux_y)
@@ -270,20 +286,21 @@ contains
             p_temp(nb_points_spatiaux_x,nb_points_spatiaux_y) = p_temp(nb_points_spatiaux_x-1,nb_points_spatiaux_y)
 
             critere_arret = 0.0_DB
+
+            !!$OMP PARALLEL PRIVATE (i, j) SHARED (critere_arret)
+            !!$OMP DO
             do j = 1, nb_points_spatiaux_y
                 do i = 1, nb_points_spatiaux_x
                     critere_arret = critere_arret + (p_temp(i,j) - p_n(i,j))**2.0_DB
                 end do
             end do
-
+            !!$OMP END DO
             critere_arret = (critere_arret/(real(nb_points_spatiaux_x, DB)*real(nb_points_spatiaux_y, DB)))**0.5_DB
-            !print *, critere_arret
+            !!$OMP END PARALLEL
 
             ! Réaffectation p
             p_n(:,:) = p_temp(:,:)
         end do
-
-        !$ write (*, *) "ploc5.1.2"
         
     end subroutine resolution_p
 
@@ -303,17 +320,13 @@ contains
             t = t + dt
 
             ! Résolution de p
-            !$ write (*, *) "ploc5.1"
             call resolution_p()
-            !$ write (*, *) "ploc5.2"
 
             ! Résolution de u
             call resolution_u()
-            !$ write (*, *) "ploc5.3"
             
             ! Résolution de v
             call resolution_v()
-            !$ write (*, *) "ploc5.4"
 
             ! Réafectation des champs de vitesse
             u_n(:,:) = u_temp(:,:)
@@ -356,28 +369,34 @@ contains
         
     end subroutine save_tecplot_format
 
-end module global
+    end module global
+    
+    
+    program etape_finale
+        use global
+        !$ use OMP_LIB
+        implicit none
+    
+        integer :: t1 , t2 , ir
+        real :: temps
+        !$ integer :: nbr_de_coeurs_utilises, nbr_de_coeurs_total
+    
+        call system_clock ( count = t1 , count_rate = ir )
+    
+    !$ nbr_de_coeurs_total = OMP_GET_NUM_PROCS ()
+    !$ nbr_de_coeurs_utilises = 8
+    !$ write (* ,*) "Nombre de coeurs utilises : ", nbr_de_coeurs_utilises, "/", nbr_de_coeurs_total
 
+    !$ call OMP_SET_NUM_THREADS (nbr_de_coeurs_utilises)
 
-program etape_finale
-    use global
-    !$ use OMP_LIB
-    implicit none
-
-    !$ nbr_de_coeurs = OMP_GET_NUM_PROCS ()
-    !$ write (* ,*) " Nombre de coeurs disponibles sur la machine :" ,nbr_de_coeurs
-
-    !$ call OMP_SET_NUM_THREADS (8)
-    !$ write (*, *) "ploc1"
     call import_input()
-    !$ write (*, *) "ploc2"
     call init_results()
-    !$ write (*, *) "ploc3"
     call definition_maillage()
-    !$ write (*, *) "ploc4"
     call conditions_initiale()
-    !$ write (*, *) "ploc5"
     call solution_finale()
-    !$ write (*, *) "ploc6"
+
+    call system_clock ( count = t2 , count_rate = ir )
+    temps = Real( t2 - t1 , kind =DB) / real( ir , kind =DB)
+    write (* ,*) " temps dexcecution du programme : " , temps
 
 end program etape_finale

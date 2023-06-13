@@ -11,13 +11,13 @@ La convection linéaire et diffusion d’un champ scalaire u(x, y, t) à une vit
 
 On souhaite résoudre l’équation (1) sur un domaine de taille L × L avec L = 2, dont la condition initiale est :
 
-```u(x, t = 0) = 2``` pour 0.5 ≤ x ≤ 1 et 0.5 ≤ y ≤ 1
+* ```u(x, t = 0) = 2``` pour 0.5 ≤ x ≤ 1 et 0.5 ≤ y ≤ 1
 
-```u(x, t = 0) = 1``` pour partout ailleurs 
+* ```u(x, t = 0) = 1``` pour partout ailleurs 
 
 et les conditions aux limites suivantes :
 
-```u(x = 0, y, t) = 1```  ```u(x = L, y, t) = 1``` ```u(x, y = 0, t) = 1``` ```u(x, y = L, t) = 1```
+* ```u(x = 0, y, t) = 1```  ```u(x = L, y, t) = 1``` ```u(x, y = 0, t) = 1``` ```u(x, y = L, t) = 1```
 
 La vitesse de convection sera prise comme c = 1.0 et le coefficient de diffusion ν = 0.01.
 Le domaine sera discrétisé avec un maillage homogène régulier de 81 × 81 points. La résolution se fera

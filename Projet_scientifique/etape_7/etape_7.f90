@@ -137,7 +137,7 @@ contains
                 if ((CFL * dmin / abs(u_n(i,j)) < dt).AND.(u_n(i,j)/=0)) then
                     dt = CFL * dmin / abs(u_n(i,j))
                 end if
-                if ((CFL * dmin / abs(u_n(i,j)) < dt).AND.(v_n(i,j)/=0)) then
+                if ((CFL * dmin / abs(v_n(i,j)) < dt).AND.(v_n(i,j)/=0)) then
                     dt = CFL * dmin / abs(v_n(i,j))
                 end if
             end do

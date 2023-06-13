@@ -244,14 +244,14 @@ async function compare_plotly_1D_chart(data) {
 
     for (var i = 0; i < data.length; i++) {
         plotData.push({
-            x: data[i].map(point => point[0]),
-            y: data[i].map(point => point[1]),
+            x: data[i]["values"].map(point => point[0]),
+            y: data[i]["values"].map(point => point[1]),
             type: 'scatter',
             mode: 'lines',
             line: {
-                color: 'blue',
                 width: 2
             },
+            name: data[i].name,
         });
     }
     
@@ -486,6 +486,14 @@ async function load_input(data) {
             button.classList.add("btn", "btn-primary");
             button.textContent = "Calculer";
             form.appendChild(button);
+            if (name == "etape_finale") {
+                const button = document.createElement("button");
+                button.type = "submit";
+                button.style.marginLeft = 5;
+                button.classList.add("btn", "btn-primary");
+                button.textContent = "Calculer en parallèle";
+                form.appendChild(button);
+            }
             bloc.appendChild(form);
             form.addEventListener("submit", (event) => {
                 event.preventDefault();

@@ -171,7 +171,8 @@ async def receive_post_request(data_input: dict):
     sheetname = data_input.get('filename')
     filename = data_input.get('filename') + '.xlsx'
 
-    data = np.zeros((int((len(lines))**0.5), 2))
+    data = {}
+    data["values"] = np.zeros((int((len(lines))**0.5), 2))
     
     try:
         champs = data_input.get('champs')
@@ -197,19 +198,21 @@ async def receive_post_request(data_input: dict):
     for line in lines:
         values = line.strip().split()
         if (float(values[col_x]) == 0.5):
-            data[i, :] = [float(values[col_y]), float(values[col])]
+            data["values"][i, :] = [float(values[col_y]), float(values[col])]
             i += 1
+    data["name"] = "Données calculées"
+    data["values"] = data["values"].tolist()
 
-
-    datas.append(data.tolist())
+    datas.append(data)
     
+    data = {}
     sheetname = data_input.get('filename')
     filename = data_input.get('filename') + '.xlsx'
     folderPath = data_input.get('path1')
     df1 = pd.read_excel (os.path.join(folderPath, filename), sheet_name=[sheetname])
     df1_1=df1[sheetname]
     
-    data = np.zeros((1001, 2))
+    data["values"] = np.zeros((1001, 2))
     
     champsToName = {
         'u': 'U:0',
@@ -227,9 +230,11 @@ async def receive_post_request(data_input: dict):
     x = df1_1[col_name2].values
     
     for i, value in enumerate(values):
-        data[i, :] = [float(x[i]), float(value)]
+        data["values"][i, :] = [float(x[i]), float(value)]
+    data["name"] = "Données de références"
+    data["values"] = data["values"].tolist()
 
-    datas.append(data.tolist())
+    datas.append(data)
     
     return {
         'datas': datas

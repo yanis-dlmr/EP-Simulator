@@ -5,13 +5,13 @@ L’objectif de cette deuxième étape est d’ajouter le phénomène de diffusi
 ## Description
 La convection linéaire et diffusion d’un champ scalaire u(x, t) à une vitesse constante c et coefficient de diffusion ν suit l’équation suivante :
 
-```∂u/∂t + c ∂u/∂x = ν (∂^2 u/∂x^2)```
+```∂u/∂t + c ∂u/∂x = ν (∂^2 u/∂x^2)``` (1)
 
 ## Problème à résoudre
 
 On souhaite résoudre l’équation (1) sur un domaine de taille [0; L] avec L = 1, dont la condition initiale est :
 
-```u(x, t = 0) = exp((−(x − x0)/δ)^2)```
+```u(x, t = 0) = exp(−[(x − x0)/δ]^2)```
 
 avec x0 = 0.2 et δ = 0.05 et les conditions aux limites sont :
 
@@ -26,7 +26,7 @@ Le domaine sera discrétisé avec un maillage homogène de 101 points. La résol
 
 * le schéma centré d’ordre 2 pour la diffusion.
 
-Le résultat final attendu est au temps tf = 0.5.
+Le résultat final attendu est au temps t_f = 0.5.
 La solution analytique est de la forme :
 
 ```u(x, t) = δ/√(2νt + δ^2) * exp((−(x − x0 − ct)/√ (2νt + δ^2))^2)```
