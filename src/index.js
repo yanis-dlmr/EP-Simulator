@@ -26,7 +26,7 @@ const createWindow = () => {
   mainWindow.webContents.on('did-finish-load', () => {
     mainWindow.maximize();
   });
-  mainWindow.webContents.openDevTools();
+  //mainWindow.webContents.openDevTools();
 };
 
 app.whenReady().then(() => {

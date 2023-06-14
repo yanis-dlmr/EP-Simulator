@@ -1,8 +1,7 @@
 fastapi
 markdown2
 numpy
-os
-json
-subprocess
+pandas
+multiprocessing
 uvicorn
 asyncio

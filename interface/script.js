@@ -424,6 +424,20 @@ async function runFortran(data) {
     end_loading();
 };
 
+async function runFortranParallel(data) {
+    start_loading();
+    var url = "http://127.0.0.1:8000/runFortranParallel"
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    });
+    return response.json();
+    end_loading();
+};
+
 async function loadMarkdown(data) {
     start_loading();
     var url = "http://127.0.0.1:8000/loadMarkdown"
@@ -481,17 +495,17 @@ async function load_input(data) {
                 row.appendChild(inputDiv);
                 form.appendChild(row);
             }
-            const button = document.createElement("button");
-            button.type = "submit";
-            button.classList.add("btn", "btn-primary");
-            button.textContent = "Calculer";
-            form.appendChild(button);
             if (name == "etape_finale") {
                 const button = document.createElement("button");
                 button.type = "submit";
-                button.style.marginLeft = 5;
                 button.classList.add("btn", "btn-primary");
                 button.textContent = "Calculer en parallèle";
+                form.appendChild(button);
+            } else {
+                const button = document.createElement("button");
+                button.type = "submit";
+                button.classList.add("btn", "btn-primary");
+                button.textContent = "Calculer";
                 form.appendChild(button);
             }
             bloc.appendChild(form);
@@ -513,7 +527,13 @@ async function load_input(data) {
                 var chemin1 = 'Projet_scientifique/' + name + '/input.dat';
                 saveData({path: chemin1, text: newContent});
                 var chemin2 = 'Projet_scientifique/' + name + '/' + name + '.f90';
-                runFortran({path: chemin2});
+                if (name = "etape_finale") {
+                    console.log("parallel")
+                    runFortranParallel({path: chemin2});
+                } else {
+                    console.log("not parallel")
+                    runFortran({path: chemin2});
+                }
                 location.reload();
             });
         });

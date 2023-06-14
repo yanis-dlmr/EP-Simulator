@@ -79,8 +79,9 @@ async def receive_post_request(data: dict):
 #    return response_data
 
 import multiprocessing
+import time
 
-def run_fortran(path):
+def run_gfortran(path):
     repertoire_initial = os.getcwd()
     repertoire_parent = os.path.dirname(path)
     os.chdir(repertoire_parent)
@@ -88,13 +89,32 @@ def run_fortran(path):
     os.system(f'gfortran {nom_fichier}')
     os.system('a.exe')
     os.chdir(repertoire_initial)
+    
+def run_gfortran_parallel(path):
+    repertoire_initial = os.getcwd()
+    repertoire_parent = os.path.dirname(path)
+    os.chdir(repertoire_parent)
+    nom_fichier = os.path.basename(path)
+    os.system(f'gfortran -fopenmp {nom_fichier} -o banane')
+    time.sleep(5)
+    os.system('banane.exe')
+    os.chdir(repertoire_initial)
 
 @app.post("/runFortran")
 async def receive_post_request(data: dict):
     path = data.get('path')
     num_cores = multiprocessing.cpu_count()
     pool = multiprocessing.Pool(num_cores)
-    results = pool.map(run_fortran, [path])
+    results = pool.map(run_gfortran, [path])
+    response_data = {"message": "Requête POST reçue avec succès !"}
+    return response_data
+
+@app.post("/runFortranParallel")
+async def receive_post_request(data: dict):
+    path = data.get('path')
+    num_cores = multiprocessing.cpu_count()
+    pool = multiprocessing.Pool(num_cores)
+    results = pool.map(run_gfortran_parallel, [path])
     response_data = {"message": "Requête POST reçue avec succès !"}
     return response_data
 
