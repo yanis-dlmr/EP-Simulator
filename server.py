@@ -8,6 +8,8 @@ import subprocess
 import uvicorn
 import pandas as pd
 import asyncio
+import multiprocessing
+import time
 
 app = FastAPI()
 
@@ -78,8 +80,6 @@ async def receive_post_request(data: dict):
 #    response_data = {"message": "Requête POST reçue avec succès !"}
 #    return response_data
 
-import multiprocessing
-import time
 
 def run_gfortran(path):
     repertoire_initial = os.getcwd()

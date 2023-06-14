@@ -3,4 +3,4 @@ Logiciel concu dans le cadre d'un Projet Scientifique réalisé à l'INSA Rouen 
 
 ![Loutres trop belle](../pictures/logo.ico)
 
-Concu par Yanis Delamare
+Concu par Yanis Delamare et Titouan Goualou !
